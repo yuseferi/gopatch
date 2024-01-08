@@ -5,13 +5,13 @@ on:
     inputs:
       application:
         description: 'Select application(s)'
-        type: choice
+        type: multiselect
         required: true
         default: 'vbo'
         options: [ 'vbo', 'monitor', 'heartbeat' ]
       environment:
         description: 'Select environment(s)'
-        type: choice
+        type: multiselect
         required: true
         default: 'dev'
         options: [ 'dev', 'stg', 'prd' ]
