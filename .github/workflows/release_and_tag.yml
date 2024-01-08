@@ -1,0 +1,63 @@
+name: Create Tag(s) and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Select application(s)'
+        required: true
+        default: 'vbo'
+        options: [ 'vbo', 'monitor', 'heartbeat' ]
+      environment:
+        description: 'Select environment(s)'
+        required: true
+        default: 'dev'
+        options: [ 'dev', 'stg', 'prd' ]
+      branch:
+        description: 'Select branch'
+        required: true
+        options:
+          - 'main'
+          # Add other existing branches dynamically (if possible)
+          # e.g., use GitHub API to fetch branches dynamically
+      description:
+        description: 'Optional description for the release'
+        required: false
+
+jobs:
+  fetch-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch Branches
+        id: fetch_branches
+        run: |
+          branches=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/branches \
+            | jq -r '.[] | .name')
+
+          echo "::set-output name=branches::$branches"
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create Tag and Release
+        id: create_tag_release
+        run: |
+          # Use the inputs to construct the tag name
+          tag_name="${{ github.event.inputs.application }}_${{ github.event.inputs.environment }}_${{ github.event.inputs.branch }}"
+          
+          # Create a tag
+          git tag -a "$tag_name" -m "${{ github.event.inputs.description }}"
+          
+          # Push the tag to the repository
+          git push origin "$tag_name"
+
+          # Create a release based on the tag
+          # Modify this as needed to create a release using GitHub API or other methods
+          # For GitHub API method, you might use something like the 'actions/github-script' action
+
+      # You might add additional steps like notifications or error handling here
